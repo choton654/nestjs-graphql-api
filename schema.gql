@@ -1,0 +1,69 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Post {
+  id: ID!
+  title: String!
+  text: String!
+  points: Float!
+  creatorId: String!
+  createdAt: String!
+  updatedAt: String!
+  textSnippest: String!
+}
+
+type User {
+  id: ID!
+  username: String!
+  email: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type PginatePosts {
+  posts: [Post!]!
+  hasMore: Boolean!
+}
+
+type Error {
+  field: String!
+  message: String!
+}
+
+type UserResponse {
+  errors: [Error!]
+  user: User
+}
+
+type Query {
+  helloPost: String!
+  getPosts: [Post!]!
+  posts(cursor: String, limit: Int!): PginatePosts!
+  getPost(id: ID!): Post
+  user: String!
+  getUsers: [User!]!
+  me: User
+}
+
+type Mutation {
+  createPost(input: PostInput!): Post!
+  updatePost(title: String, id: ID!): Post!
+  deletePost(id: ID!): Boolean!
+  register(options: UsernamePasswordInput!): UserResponse!
+  login(password: String!, usernameOremail: String!): UserResponse!
+  logout: Boolean!
+  forgetPassword(email: String!): Boolean!
+  changePassword(password: String!, token: String!): UserResponse!
+}
+
+input PostInput {
+  text: String!
+  title: String!
+}
+
+input UsernamePasswordInput {
+  email: String!
+  username: String!
+  password: String!
+}
