@@ -2,6 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
+    "lib": ["dom", "es6", "es2017", "esnext.asynciterable"],
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -11,8 +12,10 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true
-  }
+  },
+  "exclude": ["node_modules", "dist"]
 }
+
 // {
 //   "compilerOptions": {
 //     "target": "es6",

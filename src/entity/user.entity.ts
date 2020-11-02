@@ -1,4 +1,5 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+// import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType } from 'type-graphql';
 import {
   Column,
   CreateDateColumn,
@@ -11,6 +12,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Post } from './post.entity';
+import { Updoot } from './updoot.entity';
 
 @ObjectType()
 @Entity()
@@ -24,6 +26,12 @@ export class User extends BaseEntity {
     post => post.creator,
   )
   posts: Post[];
+
+  @OneToMany(
+    () => Updoot,
+    updoot => updoot.user,
+  )
+  updoots: Updoot[];
 
   @Field(() => String)
   @Column()

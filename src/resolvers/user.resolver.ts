@@ -1,20 +1,23 @@
 import { MyContext } from '../types';
 import { User } from '../entity/user.entity';
 import {
-  Args,
-  Context,
+  Arg,
+  Ctx,
   Field,
+  FieldResolver,
   InputType,
   Mutation,
   ObjectType,
   Query,
   Resolver,
-} from '@nestjs/graphql';
+  Root,
+  UseMiddleware,
+} from 'type-graphql';
 import argon2 = require('argon2');
 import { sendEmail } from '../utils/sendmail';
 import { v4 } from 'uuid';
-import { UseGuards } from '@nestjs/common';
-import { AuthGuard } from '../middleware/auth.guard';
+import { isAuth } from '../middleware/isAuth';
+import { Post } from 'src/entity/post.entity';
 
 @InputType()
 class UsernamePasswordInput {
@@ -43,20 +46,29 @@ class UserResponse {
   user?: User;
 }
 
-@Resolver()
+@Resolver(User)
 export class UserResolver {
   @Query(() => String)
   async user() {
     return 'hello from user';
   }
+
+  @FieldResolver(() => String, { nullable: true })
+  email(@Root() user: User, @Ctx() { req }: MyContext) {
+    if (req.session.userId === user.id.toString()) {
+      return user.email;
+    }
+    return '';
+  }
+
   @Query(() => [User])
   public async getUsers(): Promise<User[]> {
     return User.find();
   }
 
   @Query(() => User, { nullable: true })
-  @UseGuards(new AuthGuard())
-  async me(@Context() { req }: MyContext) {
+  @UseMiddleware(isAuth)
+  async me(@Ctx() { req }: MyContext) {
     const user = await User.findOne(req.session.userId);
 
     return user;
@@ -64,8 +76,8 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async register(
-    @Args('options') options: UsernamePasswordInput,
-    @Context() { req }: MyContext,
+    @Arg('options') options: UsernamePasswordInput,
+    @Ctx() { req }: MyContext,
   ): Promise<UserResponse> {
     if (!options.email.includes('@')) {
       return {
@@ -126,9 +138,9 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async login(
-    @Args('usernameOremail') usernameOremail: string,
-    @Args('password') password: string,
-    @Context() { req }: MyContext,
+    @Arg('usernameOremail') usernameOremail: string,
+    @Arg('password') password: string,
+    @Ctx() { req }: MyContext,
   ): Promise<UserResponse> {
     const user = await User.findOne({
       where: {
@@ -164,7 +176,7 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  logout(@Context() { req, res }: MyContext) {
+  logout(@Ctx() { req, res }: MyContext) {
     return new Promise(resolve => {
       req.session.destroy((err: any) => {
         res.clearCookie('qid', { path: '/' });
@@ -181,8 +193,8 @@ export class UserResolver {
 
   @Mutation(() => Boolean)
   async forgetPassword(
-    @Args('email') email: string,
-    @Context() { redis }: MyContext,
+    @Arg('email') email: string,
+    @Ctx() { redis }: MyContext,
   ) {
     const user = await User.findOne({ where: { email } });
     if (!user) {
@@ -209,9 +221,9 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async changePassword(
-    @Args('token') token: string,
-    @Args('password') password: string,
-    @Context() { req, redis }: MyContext,
+    @Arg('token') token: string,
+    @Arg('password') password: string,
+    @Ctx() { req, redis }: MyContext,
   ): Promise<UserResponse> {
     if (password.length <= 3) {
       return {
@@ -261,3 +273,15 @@ export class UserResolver {
     return { user };
   }
 }
+
+// import {
+//   Args,
+//   Context,
+//   Field,
+//   InputType,
+//   Mutation,
+//   ObjectType,
+//   Query,
+//   Resolver,
+// } from '@nestjs/graphql';
+// import { UseGuards } from '@nestjs/common';

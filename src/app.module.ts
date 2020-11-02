@@ -1,24 +1,16 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import * as ormConfig from './config/ormConfig';
-import RepoModule from './repo.module';
-import { MyContext } from './types';
-import { PostResolver } from './resolvers/post.resolver';
-import { UserResolver } from './resolvers/user.resolver';
-import { redis } from './main';
 import { ConfigModule } from '@nestjs/config';
+import { GraphqlConfigService } from './typegraphql';
+import { AppService } from './app.service';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    GraphQLModule.forRoot({
-      autoSchemaFile: 'schema.gql',
-      playground: true,
-      installSubscriptionHandlers: true,
-      context: ({ req, res }): MyContext => ({ req, res, redis }),
+    GraphQLModule.forRootAsync({
+      useClass: GraphqlConfigService,
     }),
     TypeOrmModule.forRoot({
       type: 'mongodb',
@@ -29,11 +21,19 @@ import { ConfigModule } from '@nestjs/config';
       logging: true,
       entities: [__dirname + '/../**/*.entity{.ts,.js}'],
     }),
-    RepoModule,
-    PostResolver,
-    UserResolver,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+
+// GraphQLModule.forRoot({
+//   autoSchemaFile: 'schema.gql',
+//   playground: true,
+//   installSubscriptionHandlers: true,
+//   context: ({ req, res }): MyContext => ({ req, res, redis }),
+//   cors: {
+//     credentials: true,
+//     origin: 'http://localhost:3000',
+//   },
+// }),

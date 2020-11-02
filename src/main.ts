@@ -12,11 +12,7 @@ const RedisStore = connectRedis(session);
 export const redis = new Redis();
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
-  // app.enableCors({
-  //   credentials: true,
-  //   origin: 'http://localhost:3000',
-  // });
+  const app = await NestFactory.create(AppModule);
 
   app.use(
     session({
