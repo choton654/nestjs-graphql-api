@@ -40,6 +40,9 @@
 //     "allowSyntheticDefaultImports": true,
 //     "target": "es2017",
 //     "sourceMap": true,
+// "experimentalDecorators": true,
+// "emitDecoratorMetadata": true,
+// "esModuleInterop": true,
 //     "outDir": "./dist",
 //     "baseUrl": "./",
 //     "incremental": true

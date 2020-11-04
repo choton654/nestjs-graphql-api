@@ -8,6 +8,11 @@ import RepoModule from './repo.module';
 import config from './mikro-orm.config';
 import { TypeGraphQLModule } from 'typegraphql-nestjs';
 import { MyContext } from './types';
+import { MongoHighlighter } from '@mikro-orm/mongo-highlighter';
+import { logger } from '@mikro-orm/nestjs';
+import { Updoot } from './entity/updoot.entity';
+import { User } from './entity/user.entity';
+import { Post } from './entity/post.entity';
 
 @Module({
   imports: [
@@ -24,7 +29,15 @@ import { MyContext } from './types';
         origin: 'http://localhost:3000',
       },
     }),
-    MikroOrmModule.forRoot(config),
+    MikroOrmModule.forRoot({
+      clientUrl: process.env.MONGO_URI,
+      entities: [Post, User, Updoot],
+      dbName: 'lireddit',
+      type: 'mongo',
+      debug: true,
+      logger: logger.log.bind(logger),
+      highlighter: new MongoHighlighter(),
+    }),
     RepoModule,
   ],
   controllers: [AppController],
@@ -47,9 +60,6 @@ export class AppModule {}
 //   },
 // }),
 
-// OrmModule,
-// PostModule,
-// UserModule,
 // TypeOrmModule.forRoot({
 //   type: 'mongodb',
 //   url: process.env.MONGO_URI,
@@ -58,14 +68,4 @@ export class AppModule {}
 //   synchronize: true,
 //   logging: true,
 //   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-// }),
-// GraphQLModule.forRoot({
-//   autoSchemaFile: 'schema.gql',
-//   playground: true,
-//   installSubscriptionHandlers: true,
-//   context: ({ req, res }): MyContext => ({ req, res, redis }),
-//   cors: {
-//     credentials: true,
-//     origin: 'http://localhost:3000',
-//   },
 // }),

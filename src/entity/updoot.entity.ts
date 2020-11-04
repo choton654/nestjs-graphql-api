@@ -1,11 +1,3 @@
-// import {
-//   Entity,
-//   BaseEntity,
-//   ManyToOne,
-//   Column,
-//   ObjectIdColumn,
-//   ObjectID,
-// } from 'typeorm';
 import { User } from './user.entity';
 import { Post } from './post.entity';
 import {
@@ -31,18 +23,10 @@ export class Updoot extends BaseEntity<Updoot, 'id'> {
   @PrimaryKey()
   id!: ObjectId;
 
-  // @Property()
-  // createdAt = new Date();
-
-  // @Property({ onUpdate: () => new Date() })
-  // updatedAt = new Date();
-
   @Property()
-  // @Column({ type: 'int' })
   value: number;
 
   @Property()
-  // @ObjectIdColumn()
   userId: ObjectId;
 
   @ManyToOne(
@@ -52,13 +36,13 @@ export class Updoot extends BaseEntity<Updoot, 'id'> {
   user: User;
 
   @Property()
-  // @ObjectIdColumn()
   postId: ObjectId;
 
   @ManyToOne(
     () => Post,
     // post => post.updoots,
   )
+  post: Post;
   // @ManyToOne(
   //   () => Post,
   //   post => post.updoots,
@@ -66,5 +50,4 @@ export class Updoot extends BaseEntity<Updoot, 'id'> {
   //     onDelete: 'CASCADE',
   //   },
   // )
-  post: Post;
 }

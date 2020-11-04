@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-// import { Repository } from 'typeorm';
-// import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entity/user.entity';
 import { Post } from './entity/post.entity';
 import { Updoot } from './entity/updoot.entity';

@@ -8,7 +8,6 @@ import { BaseEntity } from './entity/base.entity';
 
 const logger = new Logger('MikroORM');
 const config = {
-  clientUrl: 'mongodb+srv://choton654:9804750147@cluster0-prdkh.mongodb.net',
   entities: [Post, User, Updoot],
   dbName: 'lireddit',
   type: 'mongo',
