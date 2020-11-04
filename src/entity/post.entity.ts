@@ -1,31 +1,63 @@
 // import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { Field, ID, ObjectType } from 'type-graphql';
+// import {
+//   Column,
+//   ObjectIdColumn,
+//   Entity,
+//   ObjectID,
+//   CreateDateColumn,
+//   UpdateDateColumn,
+//   ManyToOne,
+//   Index,
+//   OneToMany,
+// } from 'typeorm';
 import {
-  Column,
-  ObjectIdColumn,
   Entity,
-  ObjectID,
-  CreateDateColumn,
-  UpdateDateColumn,
-  BaseEntity,
+  Property,
   ManyToOne,
-  Index,
   OneToMany,
-} from 'typeorm';
+  Index,
+  PrimaryKey,
+  BaseEntity,
+  SerializedPrimaryKey,
+} from '@mikro-orm/core';
+// import { BaseEntity } from './base.entity';
 import { Updoot } from './updoot.entity';
 import { User } from './user.entity';
+import { ObjectId } from '@mikro-orm/mongodb';
+// export class Post {
+// @PrimaryKey({ type: String })
 
 @ObjectType()
 @Entity()
-export class Post extends BaseEntity {
+export class Post extends BaseEntity<Post, 'id'> {
+  // @Field(() => ID)
+  // @ObjectIdColumn()
+  // id!: ObjectID;
+
+  // @Field(() => ID)
+  // @PrimaryKey()
+  // id!: ObjectId;
+
   @Field(() => ID)
-  @ObjectIdColumn()
-  id!: ObjectID;
+  @PrimaryKey()
+  _id!: ObjectId;
+
+  @SerializedPrimaryKey()
+  id!: string;
+
+  @Field(() => String)
+  @Property()
+  createdAt = new Date();
+
+  @Field(() => String)
+  @Property({ onUpdate: () => new Date() })
+  updatedAt = new Date();
 
   @Field(() => User, { nullable: true })
   @ManyToOne(
     () => User,
-    user => user.posts,
+    // user => user.posts,
   )
   creator: User;
 
@@ -35,28 +67,34 @@ export class Post extends BaseEntity {
   )
   updoots: Updoot[];
 
+  @Property()
   @Field()
-  @Column()
+  // @Column()
   title!: string;
 
+  @Property()
   @Field()
-  @Column()
+  // @Column()
   text!: string;
 
+  @Property()
   @Field()
-  @Column({ type: 'int' })
+  // @Column({ type: 'int' })
   @Index({})
   points: number = 0;
 
+  @Property()
   @Field(() => String)
-  @Column({ nullable: false })
-  creatorId!: number;
+  // @Column({ nullable: false })
+  creatorId!: string;
 
-  @Field(() => String)
-  @CreateDateColumn({ type: 'date' })
-  createdAt: Date;
+  // @Property()
+  // @Field(() => String)
+  // @CreateDateColumn({ type: 'date' })
+  // createdAt: Date;
 
-  @Field(() => String)
-  @UpdateDateColumn()
-  updatedAt: Date;
+  // @Property()
+  // @Field(() => String)
+  // @UpdateDateColumn()
+  // updatedAt: Date;
 }

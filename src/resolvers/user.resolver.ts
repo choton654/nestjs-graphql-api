@@ -18,6 +18,13 @@ import { sendEmail } from '../utils/sendmail';
 import { v4 } from 'uuid';
 import { isAuth } from '../middleware/isAuth';
 import { Post } from 'src/entity/post.entity';
+import { RepoService } from '../repo.service';
+import {
+  EntityManager,
+  EntityRepository,
+  MikroORM,
+  wrap,
+} from '@mikro-orm/core';
 
 @InputType()
 class UsernamePasswordInput {
@@ -48,6 +55,12 @@ class UserResponse {
 
 @Resolver(User)
 export class UserResolver {
+  constructor(
+    private readonly repoService: RepoService,
+    private readonly orm: MikroORM,
+    private readonly em: EntityManager,
+  ) {}
+
   @Query(() => String)
   async user() {
     return 'hello from user';
@@ -63,13 +76,14 @@ export class UserResolver {
 
   @Query(() => [User])
   public async getUsers(): Promise<User[]> {
-    return User.find();
+    const user = this.em.getRepository(User);
+    return await user.findAll({});
   }
 
   @Query(() => User, { nullable: true })
   @UseMiddleware(isAuth)
   async me(@Ctx() { req }: MyContext) {
-    const user = await User.findOne(req.session.userId);
+    const user = await this.repoService.userRepo.findOne(req.session.userId);
 
     return user;
   }
@@ -112,12 +126,12 @@ export class UserResolver {
     const hashPassword = await argon2.hash(options.password);
     let newuser;
     try {
-      newuser = await User.create({
+      newuser = this.repoService.userRepo.create({
         username: options.username,
         password: hashPassword,
         email: options.email,
-      }).save();
-
+      });
+      await this.repoService.userRepo.persistAndFlush(newuser);
       req.session.userId = newuser.id;
     } catch (error) {
       console.error(error);
@@ -142,10 +156,8 @@ export class UserResolver {
     @Arg('password') password: string,
     @Ctx() { req }: MyContext,
   ): Promise<UserResponse> {
-    const user = await User.findOne({
-      where: {
-        $or: [{ username: usernameOremail }, { email: usernameOremail }],
-      },
+    const user = await this.repoService.userRepo.findOne({
+      $or: [{ username: usernameOremail }, { email: usernameOremail }],
     });
 
     if (!user) {
@@ -196,7 +208,7 @@ export class UserResolver {
     @Arg('email') email: string,
     @Ctx() { redis }: MyContext,
   ) {
-    const user = await User.findOne({ where: { email } });
+    const user = await this.repoService.userRepo.findOne({ email });
     if (!user) {
       // user not in db
       return true;
@@ -249,7 +261,7 @@ export class UserResolver {
       };
     }
 
-    const user = await User.findOne(userId);
+    const user = await this.repoService.userRepo.findOne(userId);
 
     if (!user) {
       return {
@@ -264,24 +276,15 @@ export class UserResolver {
     await redis.del(key);
 
     user.password = await argon2.hash(password);
-    await User.update(
-      { id: userId },
-      { password: await argon2.hash(password) },
-    );
+
+    wrap(user).assign({ password: await argon2.hash(password) });
+    await this.repoService.userRepo.flush();
+    // await this.repoService.userRepo.assign(
+    //   { id: userId },
+    //   { password: await argon2.hash(password) },
+    // );
 
     req.session.userId = user.id;
     return { user };
   }
 }
-
-// import {
-//   Args,
-//   Context,
-//   Field,
-//   InputType,
-//   Mutation,
-//   ObjectType,
-//   Query,
-//   Resolver,
-// } from '@nestjs/graphql';
-// import { UseGuards } from '@nestjs/common';

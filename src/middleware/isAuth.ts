@@ -1,10 +1,13 @@
 import { MyContext } from '../types';
 import { MiddlewareFn } from 'type-graphql';
 
-export const isAuth: MiddlewareFn<MyContext> = ({ context }, next) => {
+export const isAuth: MiddlewareFn<MyContext> = (
+  { context },
+  next,
+): Promise<any> => {
   if (!context.req.session.userId) {
-    // throw new Error('not authenticated');
-    return null;
+    throw new Error('not authenticated');
+    // return null;
   }
   return next();
 };

@@ -2,7 +2,6 @@ import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import session = require('express-session');
-import cors = require('cors');
 import connectRedis = require('connect-redis');
 import Redis = require('ioredis');
 
