@@ -70,14 +70,14 @@ export class PostResolver {
     return await user.findOne(root.creatorId);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, { nullable: true })
   @UseMiddleware(isAuth)
-  async voot(
+  async vote(
     @Arg('postId', () => ID) postId: ObjectId,
-    @Arg('value', () => Number) value: number,
+    @Arg('value', () => Int) value: number,
     @Ctx() { req }: MyContext,
   ) {
-    const isUpdoot = value !== -1;
+    const isUpdoot = value === 1;
     const realValue = isUpdoot ? 1 : -1;
     const { userId } = req.session;
 
@@ -90,27 +90,22 @@ export class PostResolver {
     // the user has voted on the post before
     // and they are changing their vote
     if (updoot && post) {
-      console.log(updoot);
-      console.log(post);
-      // post.points + 2 * realValue
-      wrap(updoot).assign({ value });
+      wrap(updoot).assign({ value: realValue });
       await this.repoService.updootRepo.flush();
-      wrap(post).assign({ points: post.points + 2 * realValue });
+      wrap(post).assign({ points: post.points + realValue });
       await this.repoService.postRepo.flush();
-      // post.points = 5;
-      // await post.save();
+      return true;
     } else if (!updoot) {
       const updoot = this.repoService.updootRepo.create({
-        userId,
-        postId,
+        userId: new ObjectId(userId),
+        postId: new ObjectId(postId),
         value: realValue,
       });
+      wrap(post).assign({ points: (post?.points as number) + realValue });
       await this.repoService.updootRepo.persistAndFlush(updoot);
-      wrap(post).assign({ points: post!.points + realValue });
       await this.repoService.postRepo.flush();
+      return true;
     }
-
-    return true;
   }
 
   @Query(() => PginatePosts)
@@ -131,10 +126,6 @@ export class PostResolver {
           orderBy: { createdAt: 'DESC' },
         },
       );
-      // take: realLimitplusone,
-      // order: { createdAt: 'DESC' },
-      // where: { createdAt: { $lt: new Date(parseInt(cursor)) } },
-      // relations: ['user'],
     } else {
       posts = await this.repoService.postRepo.find(
         {},
@@ -145,16 +136,20 @@ export class PostResolver {
         },
       );
     }
+    console.log(posts.length, realLimit);
 
     return {
       posts: posts.slice(0, realLimit),
-      hasMore: posts.length === realLimit,
+      hasMore: posts.length > realLimit,
+      // hasMore: true,
     };
   }
 
   @Query(() => Post, { nullable: true })
   async post(@Arg('id', () => ID) id: ObjectId): Promise<Post | null> {
-    return await this.repoService.postRepo.findOne(id);
+    return await this.repoService.postRepo.findOne(id, {
+      populate: ['creator'],
+    });
   }
 
   @Mutation(() => Post)
@@ -171,25 +166,47 @@ export class PostResolver {
     return post;
   }
 
-  @Mutation(() => Post)
+  @Mutation(() => Post, { nullable: true })
+  @UseMiddleware(isAuth)
   async updatePost(
     @Arg('id', () => ID) id: ObjectId,
     @Arg('title', () => String, { nullable: true }) title: string,
+    @Arg('text', () => String, { nullable: true }) text: string,
+    @Ctx() { req }: MyContext,
   ): Promise<Post | null> {
-    const post = await this.repoService.postRepo.findOne(id);
+    const post = await this.repoService.postRepo.findOne({
+      _id: id,
+      creatorId: req.session.userId,
+    });
     if (!post) {
-      return null;
+      throw new Error('not authorize');
+      // return null;
     }
     if (typeof title !== 'undefined') {
-      wrap(post).assign({ title });
+      wrap(post).assign({ title, text });
       await this.repoService.postRepo.flush();
     }
     return post;
   }
 
   @Mutation(() => Boolean)
-  async deletePost(@Arg('id', () => ID) id: ObjectId): Promise<Boolean> {
-    await this.repoService.postRepo.nativeDelete({ id });
+  @UseMiddleware(isAuth)
+  async deletePost(
+    @Arg('id', () => ID) id: ObjectId,
+    @Ctx() { req }: MyContext,
+  ): Promise<Boolean> {
+    const post = await this.repoService.postRepo.findOne({
+      _id: id,
+      creatorId: req.session.userId,
+    });
+    const updoot = await this.repoService.updootRepo.findOne({
+      postId: id,
+    });
+    if (!post) {
+      return false;
+    }
+    await this.repoService.updootRepo.nativeDelete({ postId: id });
+    await this.repoService.postRepo.removeAndFlush(post);
     return true;
   }
 }

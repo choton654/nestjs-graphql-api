@@ -8,6 +8,7 @@ import {
   Index,
   PrimaryKey,
   BaseEntity,
+  Cascade,
 } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 // import { BaseEntity } from './base.entity';
@@ -29,25 +30,12 @@ export class Updoot extends BaseEntity<Updoot, 'id'> {
   @Property()
   userId: ObjectId;
 
-  @ManyToOne(
-    () => User,
-    // user => user.updoots,
-  )
+  @ManyToOne(() => User)
   user: User;
 
   @Property()
   postId: ObjectId;
 
-  @ManyToOne(
-    () => Post,
-    // post => post.updoots,
-  )
+  @ManyToOne(() => Post, { cascade: [Cascade.PERSIST, Cascade.REMOVE] })
   post: Post;
-  // @ManyToOne(
-  //   () => Post,
-  //   post => post.updoots,
-  //   {
-  //     onDelete: 'CASCADE',
-  //   },
-  // )
 }

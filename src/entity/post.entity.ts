@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, ID, Int, ObjectType } from 'type-graphql';
 import {
   Entity,
   Property,
@@ -9,6 +9,7 @@ import {
   BaseEntity,
   SerializedPrimaryKey,
   Collection,
+  Cascade,
 } from '@mikro-orm/core';
 // import { BaseEntity } from './base.entity';
 import { Updoot } from './updoot.entity';
@@ -34,10 +35,7 @@ export class Post extends BaseEntity<Post, 'id'> {
   updatedAt = new Date();
 
   @Field(() => User, { nullable: true })
-  @ManyToOne(
-    () => User,
-    // user => user.posts,
-  )
+  @ManyToOne(() => User)
   creator: User;
 
   @OneToMany(
@@ -45,9 +43,10 @@ export class Post extends BaseEntity<Post, 'id'> {
     updoot => updoot.post,
   )
   updoots = new Collection<Updoot>(this);
+  // { cascade: [Cascade.ALL] },
 
   @Property()
-  @Field()
+  @Field(() => String)
   title!: string;
 
   @Property()
@@ -60,6 +59,9 @@ export class Post extends BaseEntity<Post, 'id'> {
   points: number = 0;
 
   @Property()
-  @Field(() => String)
+  @Field()
   creatorId!: string;
+
+  @Field(() => Int, { nullable: true })
+  voteStatus!: number | null;
 }

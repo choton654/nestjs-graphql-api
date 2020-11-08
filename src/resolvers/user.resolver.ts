@@ -1,5 +1,4 @@
-import { MyContext } from '../types';
-import { User } from '../entity/user.entity';
+import { EntityManager, MikroORM, wrap } from '@mikro-orm/core';
 import {
   Arg,
   Ctx,
@@ -13,18 +12,13 @@ import {
   Root,
   UseMiddleware,
 } from 'type-graphql';
-import argon2 = require('argon2');
-import { sendEmail } from '../utils/sendmail';
 import { v4 } from 'uuid';
+import { User } from '../entity/user.entity';
 import { isAuth } from '../middleware/isAuth';
-import { Post } from 'src/entity/post.entity';
 import { RepoService } from '../repo.service';
-import {
-  EntityManager,
-  EntityRepository,
-  MikroORM,
-  wrap,
-} from '@mikro-orm/core';
+import { MyContext } from '../types';
+import { sendEmail } from '../utils/sendmail';
+import argon2 = require('argon2');
 
 @InputType()
 class UsernamePasswordInput {
@@ -209,9 +203,11 @@ export class UserResolver {
     @Ctx() { redis }: MyContext,
   ) {
     const user = await this.repoService.userRepo.findOne({ email });
+    console.log(user);
+
     if (!user) {
       // user not in db
-      return true;
+      return false;
     }
 
     const token = v4();

@@ -16,8 +16,8 @@ type Mutation {
   login(password: String!, usernameOremail: String!): UserResponse!
   logout: Boolean!
   register(options: UsernamePasswordInput!): UserResponse!
-  updatePost(id: ID!, title: String): Post!
-  voot(postId: ID!, value: Float!): Boolean!
+  updatePost(id: ID!, text: String, title: String): Post
+  vote(postId: ID!, value: Int!): Boolean
 }
 
 type PginatePosts {
@@ -35,6 +35,7 @@ type Post {
   textSnippest: String!
   title: String!
   updatedAt: String!
+  voteStatus: Int
 }
 
 input PostInput {

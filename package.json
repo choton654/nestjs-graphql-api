@@ -51,7 +51,6 @@
     "rxjs": "^6.5.4",
     "type-graphql": "^1.1.0",
     "typegraphql-nestjs": "^0.2.5",
-    "typeorm": "^0.2.28",
     "uuid": "^8.3.1"
   },
   "devDependencies": {
