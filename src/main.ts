@@ -8,7 +8,7 @@ import Redis = require('ioredis');
 const port = process.env.PORT || 5000;
 
 const RedisStore = connectRedis(session);
-export const redis = new Redis();
+export const redis = new Redis(6379, process.env.REDIS_HOST);
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
